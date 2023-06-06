@@ -4,22 +4,29 @@ import messages from '../utils/messages.js';
 // CRUD to MySQL Database
 const createUser = async (req, res) => {
     const data = req.body;
+    const file = req.file;
 
-    try {
-        await Users.sync();
-        const detail_email = await Users.findOne({
-            where: { email: data.email }
-        });
-
-        if (detail_email) {
-            return messages(res, 404, "Email has been register");
-        } else {
-            const result = await Users.create(data);
-            messages(res, 201, "Create user success", result);
-        }
-    } catch (error) {
-        messages(res, 500, "Internal server error");
+    if (file) {
+        try {
+            await Users.sync();
+            const detail_email = await Users.findOne({
+                where: { email: data.email }
+            });
+    
+            if (detail_email) {
+                return messages(res, 404, "Email has been register");
+            } else {
+                data.image = `${file.filename}`;
+                const result = await Users.create(data);
+                messages(res, 201, "Create user success", { result, file });
+            }
+        } catch (error) {
+            messages(res, 500, "Internal server error");
+        } 
+    } else {
+        return messages(res, 423, "Field image required");
     }
+    
 };
 
 const detailUser = async (req, res) => {
