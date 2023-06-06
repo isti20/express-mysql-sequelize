@@ -35,4 +35,24 @@ const detailUser = async (req, res) => {
     }
 };
 
-export { createUser, detailUser };
+const deleteUser = async (req, res) => {
+    const id_user = req.params.id;
+
+    try {
+        await Users.sync();
+        const detail = await Users.destroy({
+            where: { id: id_user },
+        });
+
+        if (!detail) {
+            return messages(res, 404, `User id ${id_user} not found`);
+        } else {
+            return messages(res, 200, "DELETE user success");
+        }
+
+    } catch (error) {
+        messages(res, 500, "Internal server error");
+    }
+};
+
+export { createUser, detailUser, deleteUser };
