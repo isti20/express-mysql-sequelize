@@ -1,5 +1,5 @@
 import express from 'express';
-import { createUser, detailUser, updateUser, deleteUser } from '../controllers/users.js';
+import { createUser, detailUser, updateUser, deleteUser, allUser } from '../controllers/users.js';
 
 import multer from 'multer';
 import path from 'path';
@@ -20,6 +20,7 @@ const storage = multer.diskStorage({
 const upload = multer({storage: storage});
 
 Router.post('/users', upload.single('image'), createUser)
+.get('/users/', allUser)
 .get('/users/:id', detailUser)
 .patch('/users/:id', updateUser)
 .delete('/users/:id', deleteUser);

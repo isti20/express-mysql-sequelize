@@ -1,5 +1,7 @@
 import Users from '../models/users.js';
 import messages from '../utils/messages.js';
+import { Op } from 'sequelize';
+import fs from "fs";
 
 // CRUD to MySQL Database
 const createUser = async (req, res) => {
@@ -14,6 +16,8 @@ const createUser = async (req, res) => {
             });
     
             if (detail_email) {
+                const path = `./public/${file.filename}`;
+                fs.unlinkSync(path);
                 return messages(res, 404, "Email has been register");
             } else {
                 data.image = `${file.filename}`;
@@ -85,4 +89,32 @@ const deleteUser = async (req, res) => {
     }
 };
 
-export { createUser, detailUser, updateUser, deleteUser };
+const allUser = async (req, res) => {
+    const q = req.query.q ? req.query.q : "";
+    const order_by = req.query.order_by ? req.query.order_by : 'ASC';
+    const page = req.query.page ? parseInt(req.query.page) : 1;
+    const per_page = req.query.per_page ? parseInt(req.query.per_page) : 10;
+    
+    try {
+        await Users.sync();
+        const total = await Users.findAndCountAll();
+        const datas = await Users.findAll({
+            where: {
+                email: { [Op.substring]: q },
+            },
+
+            order: [["id", order_by]],
+            offset: page === 1 ? 0 : (page - 1) * per_page,
+            limit: per_page,
+        });
+
+        return messages(res, 200, "Users", datas, { 
+            page, 
+            per_page, 
+            total: total.count });
+    } catch (error) {
+        return messages(res, 500, "Internal server error");
+    }
+}
+
+export { createUser, detailUser, updateUser, deleteUser, allUser };
